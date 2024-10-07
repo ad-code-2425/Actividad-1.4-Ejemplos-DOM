@@ -1,4 +1,4 @@
-package es.udc.teis.model;
+package es.udc.cdm.model;
 public class Version {
     private double numero;
     private String nombre;

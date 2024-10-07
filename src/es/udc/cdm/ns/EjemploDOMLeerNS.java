@@ -2,9 +2,9 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package es.udc.teis.ns;
+package es.udc.cdm.ns;
 
-import es.udc.teis.model.Version;
+import es.udc.cdm.model.Version;
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;

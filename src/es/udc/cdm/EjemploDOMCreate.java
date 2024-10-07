@@ -2,9 +2,9 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package es.udc.teis.ns;
+package es.udc.cdm;
 
-import es.udc.teis.model.Version;
+import es.udc.cdm.model.Version;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import javax.xml.parsers.DocumentBuilder;
@@ -20,6 +20,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
+import org.w3c.dom.DocumentType;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -27,19 +28,16 @@ import org.w3c.dom.Node;
  *
  * @author maria
  */
-public class EjemploDOMCreateNS {
+public class EjemploDOMCreate {
 
     private static final String VERSIONES_TAG = "versiones";
     private static final String VERSION_TAG = "version";
-    private static final String VERSION_Q_TAG = "v:version";
     private static final String VERSION_NOMBRE_TAG = "nombre";
     private static final String VERSION_API_TAG = "api";
     private static final String VERSION_ATT_NUMERO = "numero";
 
-    private static final String VERSIONES_OUTPUT_FILE = Paths.get("src", "docs", "versiones_ns_output.xml").toString();
-
-    private static final String VERSIONES_NS_URI = "http://www.versiones.com";
-    private static final String VERSIONES_NS_URI_PREFIX = "v";
+    private static final String VERSIONES_OUTPUT_FILE = Paths.get("src", "docs", "versiones_output.xml").toString();
+    private static final String VERSIONES_DTD_FILE = "versiones.dtd";
 
     public static void main(String[] args) {
         try {
@@ -50,18 +48,15 @@ public class EjemploDOMCreateNS {
             DocumentBuilder builder = factory.newDocumentBuilder();
 
             DOMImplementation implementation = builder.getDOMImplementation();
-            //DTDs no soportan namespaces => docType es null
-
-            //Crea un document con un elmento raiz. Si añadimos aquí el namespace, se añadirá al elemento raíz con el prefijo que se indique en el 2º argumento.
-            //Si no se indica prefijo, será el ns por defecto
-            Document document = implementation.createDocument(null, VERSIONES_TAG, null);
+            //Si el documento XML necesita un DOCTYPE:
+            DocumentType docType = implementation.createDocumentType(VERSIONES_TAG, null, VERSIONES_DTD_FILE);
+            //Crea un document con un elmento raiz
+            Document document = implementation.createDocument(null, VERSIONES_TAG, docType);
 
             //Si no se necesita DOCTYPE se podría llamar a createDocument con el tercer parámetro a null
             //Document document = implementation.createDocument(null, VERSIONES_TAG, docType);
             //Obtenemos el elemento raíz
             Element root = document.getDocumentElement();
-            //Para añadir más de un namespace 
-            root.setAttribute("xmlns:" + VERSIONES_NS_URI_PREFIX, VERSIONES_NS_URI);
 
             //Existe otra posibilidad para la creación de un document totalmente vacío, al que hay que añadirle un elemento raíz:
 //            //Crear un nuevo documento XML VACÍO
@@ -69,26 +64,15 @@ public class EjemploDOMCreateNS {
 //            //Crear el nodo raíz y añadirlo al documento
 //            Element root = document.createElement(VERSIONES_TAG);
 //            document.appendChild(root);
-            int contador = 1;
             for (Version version : versions) {
-                //Para ejemplificar cómo pueden convivir etiquetas calificadas con no calificadas usamos
-                // el criterio: "los elementos de la lista con índice impar irán calificadas, los de índice par no:"
-
-                boolean par = (contador % 2 == 0);
-                Element eVersion = null;
-                if (par) {
-                    eVersion = document.createElement(VERSION_TAG);
-                } else {
-                    eVersion = document.createElementNS(VERSIONES_NS_URI, VERSION_Q_TAG);
-                }
-
+                //desde el document creamos un nuevo elemento
+                Element eVersion = document.createElement(VERSION_TAG);
                 eVersion.setAttribute(VERSION_ATT_NUMERO, String.valueOf(version.getNumero()));
 
                 addElementConTexto(document, eVersion, VERSION_NOMBRE_TAG, version.getNombre());
                 addElementConTexto(document, eVersion, VERSION_API_TAG, String.valueOf(version.getApi()));
 
                 root.appendChild(eVersion);
-                contador++;
             }
 
             //Para generar un documento XML con un objeto Document
@@ -102,7 +86,7 @@ public class EjemploDOMCreateNS {
             transformador.setOutputProperty(OutputKeys.INDENT, "yes");
 
             //Si se quisiera añadir el <!DOCTYPE>:
-            // transformador.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM, docType.getSystemId());
+            transformador.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM, docType.getSystemId());
             //El origen de la transformación es el document
             Source origen = new DOMSource(document);
             //El destino será un stream a un fichero 
@@ -114,6 +98,8 @@ public class EjemploDOMCreateNS {
 
         }
     }
+
+    
 
     private static ArrayList<Version> crearVersions() {
         ArrayList<Version> versions = new ArrayList<>();
